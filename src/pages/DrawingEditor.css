@@ -1,0 +1,665 @@
+:root {
+  --primary-blue: #1a73e8;
+  --primary-blue-hover: #1558b3;
+  --primary-blue-light: #d9e8fc;
+  --accent-color: #ffc107;
+  --selection-color: #1a73e8;
+  --selection-handle-size: 10px;
+  --toolbar-height: 60px;
+  --sidebar-width: 250px;
+}
+
+#root {
+  max-width: 100%;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  overflow: hidden;
+}
+
+.canvas-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+.editor-header {
+  height: 60px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+  z-index: 10;
+}
+
+.back-button {
+  background-color: transparent;
+  border: 1px solid #ddd;
+  color: #333;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
+  min-width: 100px;
+}
+
+.back-button:hover {
+  background-color: #f0f0f0;
+  border-color: #ccc;
+}
+
+.drawing-title {
+  flex: 1;
+  text-align: center;
+  margin: 0 20px;
+}
+
+.drawing-title-input {
+  font-size: 18px;
+  border: 1px solid transparent;
+  background-color: transparent;
+  padding: 8px 16px;
+  width: 80%;
+  text-align: center;
+  border-radius: 4px;
+  transition: border-color 0.3s, background-color 0.3s;
+}
+
+.drawing-title-input:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  background-color: #fff;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.save-button, .download-button {
+  background-color: var(--primary-blue);
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s, transform 0.1s;
+  min-width: 120px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.save-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.save-button:hover:not(:disabled) {
+  background-color: var(--primary-blue-hover);
+  transform: translateY(-1px);
+}
+
+.download-button {
+  background-color: var(--primary-blue);
+}
+
+.download-button:hover {
+  background-color: var(--primary-blue-hover);
+  transform: translateY(-1px);
+}
+
+.save-button:active:not(:disabled),
+.download-button:active {
+  transform: translateY(1px);
+}
+
+/* Tool panel modifications for compact minimized view and fixed positioning */
+.tool-panel {
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 6px 12px;
+  z-index: 100;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  width: auto;
+  max-width: 90%;
+  transition: all 0.3s ease;
+  overflow: visible;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap; /* Keep all items in a single line */
+}
+
+.tool-panel.expanded {
+  position: fixed;
+  top: calc(var(--toolbar-height));
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 100%;
+  transform: none;
+  border-radius: 0;
+  border-bottom: 1px solid #ddd;
+  padding: 10px 15px;
+  flex-wrap: wrap;
+}
+
+/* Fix for text overflowing buttons in expanded mode */
+.tool-panel.expanded .drawing-tools button {
+  width: auto;
+  min-width: 80px;
+  height: 36px;
+  white-space: nowrap;
+  overflow: hidden;
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+/* Make regular buttons smaller in minimized mode */
+.drawing-tools button {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 6px;
+  font-size: 14px;
+  transition: background-color 0.2s, transform 0.1s, border-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+/* Make divider smaller */
+.tool-divider {
+  width: 1px;
+  height: 24px;
+  background-color: #ddd;
+  margin: 0 4px;
+}
+
+/* Smaller controls in minimized mode */
+.color-picker input[type="color"] {
+  width: 24px;
+  height: 24px;
+}
+
+.tool-panel:not(.expanded) .brush-size input[type="range"] {
+  width: 80px;
+}
+
+/* Adjust toggle panel button */
+.toggle-panel {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  min-height: auto;
+  min-width: auto;
+}
+
+.color-picker,
+.brush-size,
+.action-buttons,
+.drawing-tools,
+.history-controls,
+.text-controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.drawing-tools {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Divider between tool groups */
+.tool-divider {
+  width: 1px;
+  height: 24px;
+  background-color: #ddd;
+  margin: 0 4px;
+}
+
+/* Make sure editor content doesn't overlap with top toolbar */
+.drawing-canvas {
+  flex: 1;
+  background-color: #ffffff;
+  margin-top: 65px;
+}
+
+.drawing-canvas.brush {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="5" fill="black" stroke="white" stroke-width="1"/></svg>') 10 10, auto;
+}
+
+.drawing-canvas.eraser {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="5" fill="white" stroke="black" stroke-width="1"/></svg>') 10 10, auto;
+}
+
+.drawing-canvas.fill {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path d="M5,13 L15,13 L10,5 Z" fill="black" stroke="white" stroke-width="1"/></svg>') 10 10, auto;
+}
+
+.drawing-canvas.text {
+  cursor: text;
+}
+
+.drawing-canvas.shape {
+  cursor: crosshair;
+}
+
+.drawing-canvas.select {
+  cursor: default;
+}
+
+/* Adjust canvas margin when sidebar is open */
+.drawing-canvas.sidebar-open {
+  margin-left: var(--sidebar-width);
+  width: calc(100% - var(--sidebar-width));
+}
+
+/* Left sidebar for element properties */
+.left-sidebar {
+  position: fixed;
+  left: 0;
+  top: var(--toolbar-height);
+  height: calc(100vh - var(--toolbar-height));
+  width: 0;
+  background-color: #f8f9fa;
+  border-right: 1px solid #ddd;
+  z-index: 100;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: width 0.3s ease;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.left-sidebar.open {
+  width: var(--sidebar-width);
+}
+
+/* Element Properties Panel modifications */
+.element-properties {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  margin-top: 0;
+  width: calc(var(--sidebar-width) - 32px);
+  border-top: none;
+}
+
+.element-properties h4 {
+  margin: 0 0 10px 0;
+  font-size: 15px;
+  color: #333;
+  font-weight: 600;
+}
+
+.property-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.property-group label {
+  font-size: 13px;
+  color: #444;
+}
+
+.property-group input[type="color"] {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.property-group input[type="range"] {
+  width: 100%;
+}
+
+.property-group input[type="text"],
+.property-group select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.delete-element-btn {
+  margin-top: 12px;
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.delete-element-btn:hover {
+  background-color: #ff1f1f;
+}
+
+.delete-element-btn:active {
+  transform: scale(0.98);
+}
+
+/* Selection styling enhancements */
+.selection-box {
+  position: absolute;
+  border: 2px dashed var(--selection-color);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.selection-handle {
+  position: absolute;
+  width: var(--selection-handle-size);
+  height: var(--selection-handle-size);
+  background-color: white;
+  border: 2px solid var(--selection-color);
+  border-radius: 50%;
+  z-index: 11;
+}
+
+.selection-handle.nw {
+  cursor: nwse-resize;
+  top: calc(-1 * var(--selection-handle-size) / 2);
+  left: calc(-1 * var(--selection-handle-size) / 2);
+}
+
+.selection-handle.n {
+  cursor: ns-resize;
+  top: calc(-1 * var(--selection-handle-size) / 2);
+  left: calc(50% - var(--selection-handle-size) / 2);
+}
+
+.selection-handle.ne {
+  cursor: nesw-resize;
+  top: calc(-1 * var(--selection-handle-size) / 2);
+  right: calc(-1 * var(--selection-handle-size) / 2);
+}
+
+.selection-handle.e {
+  cursor: ew-resize;
+  top: calc(50% - var(--selection-handle-size) / 2);
+  right: calc(-1 * var(--selection-handle-size) / 2);
+}
+
+.selection-handle.se {
+  cursor: nwse-resize;
+  bottom: calc(-1 * var(--selection-handle-size) / 2);
+  right: calc(-1 * var(--selection-handle-size) / 2);
+}
+
+.selection-handle.s {
+  cursor: ns-resize;
+  bottom: calc(-1 * var(--selection-handle-size) / 2);
+  left: calc(50% - var(--selection-handle-size) / 2);
+}
+
+.selection-handle.sw {
+  cursor: nesw-resize;
+  bottom: calc(-1 * var(--selection-handle-size) / 2);
+  left: calc(-1 * var(--selection-handle-size) / 2);
+}
+
+.selection-handle.w {
+  cursor: ew-resize;
+  top: calc(50% - var(--selection-handle-size) / 2);
+  left: calc(-1 * var(--selection-handle-size) / 2);
+}
+
+/* Bottom toolbar position adjusted */
+.bottom-toolbar {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  z-index: 100;
+  display: flex;
+  gap: 15px;
+  transition: all 0.3s;
+}
+
+.bottom-toolbar.expanded {
+  position: fixed;
+}
+
+.toggle-bottom-panel {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.toggle-bottom-panel:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.history-controls, .action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.bottom-toolbar button {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 10px;
+  font-size: 16px;
+  transition: background-color 0.2s, transform 0.1s, border-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.bottom-toolbar button:hover:not(:disabled) {
+  background-color: #f0f0f0;
+  border-color: var(--primary-blue);
+}
+
+.bottom-toolbar button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.bottom-toolbar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bottom-toolbar.expanded button {
+  min-width: 60px;
+  white-space: nowrap;
+}
+
+/* Text input modal */
+.text-input-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  padding: 24px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  min-width: 300px;
+  border: 1px solid #e0e0e0;
+}
+
+.text-input-modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.text-input-modal input {
+  padding: 12px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  transition: border-color 0.3s;
+}
+
+.text-input-modal input:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+}
+
+.text-input-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.text-input-buttons button {
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  transition: background-color 0.2s, transform 0.1s;
+  min-width: 80px;
+}
+
+.text-input-buttons button[type="submit"] {
+  background-color: var(--primary-blue);
+  color: white;
+}
+
+.text-input-buttons button[type="submit"]:hover {
+  background-color: var(--primary-blue-hover);
+}
+
+.text-input-buttons button[type="button"] {
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.text-input-buttons button[type="button"]:hover {
+  background-color: #e0e0e0;
+}
+
+/* Loading overlays */
+.image-loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top: 4px solid var(--primary-blue);
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Media queries for responsiveness */
+@media (max-width: 768px) {
+  .tool-panel {
+    padding: 4px 8px;
+    gap: 4px;
+    top: 65px;
+  }
+  
+  .drawing-tools button {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    padding: 4px;
+  }
+  
+  .tool-panel.expanded .drawing-tools button {
+    min-width: 60px;
+    font-size: 12px;
+    height: 32px;
+  }
+  
+  .left-sidebar.open {
+    width: 80%;
+  }
+  
+  .drawing-canvas.sidebar-open {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+/* Ensure proper spacing for color picker in horizontal toolbar */
+.color-picker {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.color-picker input[type="color"] {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}

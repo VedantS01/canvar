@@ -3,6 +3,7 @@ import './Home.css';
 
 function Home() {
   const canvasRef = useRef(null);
+  const fileInputRef = useRef(null); // Add reference for file input
   const [isDrawing, setIsDrawing] = useState(false);
   const [color, setColor] = useState('#000000');
   const [brushSize, setBrushSize] = useState(5);
@@ -12,6 +13,7 @@ function Home() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [isPanelExpanded, setIsPanelExpanded] = useState(false);
   const [isBottomPanelExpanded, setIsBottomPanelExpanded] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(false); // Add loading state for image uploads
   
   // Shape drawing state
   const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
@@ -332,6 +334,63 @@ function Home() {
     }
   };
 
+  // Add upload image function
+  const handleUploadImage = () => {
+    fileInputRef.current.click();
+  };
+
+  // Handle the file selection
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Check if file is an image
+    if (!file.type.match('image.*')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    setIsImageLoading(true);
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        // Get canvas dimensions
+        const canvas = canvasRef.current;
+        
+        // Draw the image on the canvas with responsive sizing
+        if (canvas) {
+          // Determine dimensions while maintaining aspect ratio
+          let drawWidth = img.width;
+          let drawHeight = img.height;
+          const maxWidth = canvas.width * 0.9; // 90% of canvas width
+          const maxHeight = canvas.height * 0.9; // 90% of canvas height
+          
+          // Scale down if image is larger than canvas
+          if (drawWidth > maxWidth || drawHeight > maxHeight) {
+            const ratio = Math.min(maxWidth / drawWidth, maxHeight / drawHeight);
+            drawWidth *= ratio;
+            drawHeight *= ratio;
+          }
+          
+          // Calculate position to center the image
+          const x = (canvas.width - drawWidth) / 2;
+          const y = (canvas.height - drawHeight) / 2;
+          
+          canvasContext.drawImage(img, x, y, drawWidth, drawHeight);
+          saveCanvasState();
+          setIsImageLoading(false);
+        }
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+    
+    // Clear the file input value so the same file can be selected again
+    e.target.value = '';
+  };
+
   const togglePanel = () => {
     setIsPanelExpanded(!isPanelExpanded);
   };
@@ -398,6 +457,13 @@ function Home() {
             title="Line"
           >
             {isPanelExpanded ? 'Line' : '╱'}
+          </button>
+          {/* Add Image Upload button */}
+          <button 
+            onClick={handleUploadImage}
+            title="Upload Image"
+          >
+            {isPanelExpanded ? 'Upload Image' : '🖼️'}
           </button>
         </div>
         
@@ -495,6 +561,14 @@ function Home() {
         </div>
       )}
       
+      {/* Add loading overlay for image uploads */}
+      {isImageLoading && (
+        <div className="image-loading-overlay">
+          <div className="loading-spinner"></div>
+          <p>Loading image...</p>
+        </div>
+      )}
+      
       <canvas
         ref={canvasRef}
         className={`drawing-canvas ${tool === 'brush' ? 'brush' : ''} ${tool === 'eraser' ? 'eraser' : ''} ${tool === 'fill' ? 'fill' : ''} ${tool === 'text' ? 'text' : ''} ${['rectangle', 'circle', 'line'].includes(tool) ? 'shape' : ''}`}
@@ -505,6 +579,15 @@ function Home() {
         onTouchStart={startDrawing}
         onTouchMove={draw}
         onTouchEnd={stopDrawing}
+      />
+      
+      {/* Hidden file input for image upload */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+        accept="image/*"
       />
     </div>
   );
